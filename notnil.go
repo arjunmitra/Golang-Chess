@@ -11,25 +11,25 @@ import (
 
 func main() {
 
-	game := chess.NewGame()
+	game := chess.NewGame() //creating new game
 	for game.Outcome() == chess.NoOutcome {
-
+		//printing a line to segregate between moves
 		printLine()
-		fmt.Println(game.Position().Board().Draw())
+		fmt.Println(game.Position().Board().Draw()) //printing the current chess board
 		reader := bufio.NewReader(os.Stdin)
-		moves := game.ValidMoves()
+		moves := game.ValidMoves() //retrieving valid moves
 		if game.Position().Turn().String() == "w" {
 			fmt.Println("Your Turn. Please make a move")
 			for true {
-				input, _ := reader.ReadString('\n')
+				input, _ := reader.ReadString('\n') // getting user input for what move they want to play
 				input = strings.TrimSpace(input)
 				input = strings.ToLower(input)
-				isValid := validate(moves, input)
+				isValid := validate(moves, input) // validating if this a legal move
 				if isValid == -1 {
 					fmt.Println("please input a valid move")
 					continue
 				}
-				game.Move(moves[isValid])
+				game.Move(moves[isValid]) //updating chess board with move
 				break
 			}
 
@@ -37,13 +37,13 @@ func main() {
 
 			fmt.Println("Opponent Turn")
 			index := 0
-			maxim := -100000
+			maxim := -100000 // using Minimax algorithm to get best move for AI
 			for i := 0; i < len(moves); i++ {
-				gameCopy := game.Clone()
-				gameCopy.Move(moves[i])
+				gameCopy := game.Clone() // creating copy of the game
+				gameCopy.Move(moves[i])  // going through all possible moves and seeing which move leaves us in the best position to win
 				score := AI_move(gameCopy, 3, false)
 
-				if score > maxim {
+				if score > maxim { //updating best move
 					index = i
 					maxim = score
 
@@ -52,7 +52,7 @@ func main() {
 			game.Move(moves[index])
 		}
 	}
-	winner(game)
+	winner(game) // printing the result of the game
 
 }
 
@@ -90,11 +90,11 @@ func AI_move(game *chess.Game, depth int, isMaximizing bool) int {
 	if depth == 0 {
 
 		value := 0
-		mapping := game.Position().Board().SquareMap()
+		mapping := game.Position().Board().SquareMap() //retrieving map of peices and where these peices are located
 
 		for key := range mapping {
 
-			row := getRow(key.String())
+			row := getRow(key.String()) //getting the location of each  peice
 			col := getCol(key.String())
 
 			element := mapping[key]
@@ -104,10 +104,10 @@ func AI_move(game *chess.Game, depth int, isMaximizing bool) int {
 			Type := element.Type().String()
 			color := element.Color().String()
 
-			if color == "w" {
+			if color == "w" { // if w, these peices will like to minimize the AI's score, thus we make them - ve of the black peices score
 				curr = curr * -1
 
-			}
+			} // each peice is given a weight (1000 for king) and we get a score based on where the peice is on the board
 			if Type == "k" {
 				score := king(row, col)
 				curr = curr * 1000 * score
@@ -130,25 +130,25 @@ func AI_move(game *chess.Game, depth int, isMaximizing bool) int {
 				score := bishop(row, col)
 				curr = curr * 150 * score
 			}
-			value = value + curr
+			value = value + curr // updating the score at this position
 
 		}
 		return value
 	}
-
+	// it is the AI's turn
 	if isMaximizing == true {
 		moves := game.ValidMoves()
 		value := -100000
 		for i := 0; i < len(moves); i++ {
 			copy := game.Clone()
 			copy.Move(moves[i])
-			eval := AI_move(copy, depth-1, false)
+			eval := AI_move(copy, depth-1, false) //searching all possible positions upto a certain depth
 			if eval > value {
 				value = eval
 			}
 		}
 		return value
-	} else {
+	} else { // it is the person's turn
 		moves := game.ValidMoves()
 		value := 100000
 		for i := 0; i < len(moves); i++ {
@@ -163,9 +163,9 @@ func AI_move(game *chess.Game, depth int, isMaximizing bool) int {
 		return value
 	}
 
-	return 0
 }
 
+//these table give a score to each peice depending on their location
 func pawn(row int, col int) int {
 	values := [8][8]int{
 
